@@ -597,6 +597,19 @@ struct ConstantOpConv : public OpConversionPattern<ConstantOp> {
   }
 };
 
+struct RealLiteralOpConv : public OpConversionPattern<RealLiteralOp> {
+  using OpConversionPattern::OpConversionPattern;
+
+  LogicalResult
+  matchAndRewrite(RealLiteralOp op, OpAdaptor adaptor,
+                  ConversionPatternRewriter &rewriter) const override {
+    int64_t val = op.getValue().bitcastToAPInt().getZExtValue();;
+    auto type = rewriter.getIntegerType(64);
+    rewriter.replaceOpWithNewOp<hw::ConstantOp>(op, type, val);
+    return success();
+  }
+};
+
 struct StringConstantOpConv : public OpConversionPattern<StringConstantOp> {
   using OpConversionPattern::OpConversionPattern;
   LogicalResult
@@ -1650,6 +1663,13 @@ static void populateTypeConversion(TypeConverter &typeConverter) {
     return IntegerType::get(type.getContext(), type.getWidth());
   });
 
+  typeConverter.addConversion([&](RealType type) -> std::optional<Type> {
+    auto width = type.getBitSize();
+    if (width)
+      return IntegerType::get(type.getContext(), *width);
+    return {};
+  });
+
   typeConverter.addConversion([&](FormatStringType type) {
     return sim::FormatStringType::get(type.getContext());
   });
@@ -1782,6 +1802,7 @@ static void populateOpConversion(RewritePatternSet &patterns,
     StructExtractOpConversion, StructExtractRefOpConversion,
     ExtractRefOpConversion, StructCreateOpConversion, ConditionalOpConversion,
     YieldOpConversion, OutputOpConversion, StringConstantOpConv,
+    RealLiteralOpConv,
 
     // Patterns of unary operations.
     ReduceAndOpConversion, ReduceOrOpConversion, ReduceXorOpConversion,
