@@ -1393,8 +1393,6 @@ def IntegerAddOp : IntegerBinaryPrimOp<"integer.add", [Commutative]> {
                                          !firrtl.integer
     ```
   }];
-
-  let hasFolder = true;
 }
 
 def IntegerMulOp : IntegerBinaryPrimOp<"integer.mul", [Commutative]> {
@@ -1409,8 +1407,6 @@ def IntegerMulOp : IntegerBinaryPrimOp<"integer.mul", [Commutative]> {
                                          !firrtl.integer
     ```
   }];
-
-  let hasFolder = true;
 }
 
 def IntegerShrOp : IntegerBinaryPrimOp<"integer.shr"> {
